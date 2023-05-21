@@ -23,15 +23,15 @@ the benefit of ιota is that non-reactive UI results in often disgustingly bad c
 
 ## Goals
 
-- work predictably
-- be very small
-- have enough better than vanilla JS DX to justify using
+-  work predictably
+-  be very small
+-  have enough better than vanilla JS DX to justify using
 
 ## Non-goals
 
-- highly flexible / controllable reactivity
-- JSX
-- fancier templating [arrowjs-style](https://www.arrow-js.com/) (templating into events and attrs)
+-  highly flexible / controllable reactivity
+-  JSX
+-  fancier templating [arrowjs-style](https://www.arrow-js.com/) (templating into events and attrs)
 
 ## Usage: reactivity
 
@@ -42,7 +42,7 @@ Import `sig` from ιota to create a signal: `const mySig = sig(0);`
 You can access the value of the signal by calling it: `mySig()`, or update the value of it by
 passing a value: `mySig(1)`.
 
-Note that you *can* pass `mySig(undefined)` and all will still set the signal as expected:
+Note that you _can_ pass `mySig(undefined)` and all will still set the signal as expected:
 choosing to set or not is based on the length of the arguments, not on the value of the first
 argument.
 
@@ -97,11 +97,11 @@ functions.
 You can create a basic template using `html`:
 
 ```js
-const myElem = html`<div style="width: 1rem"> <img src="cat.gif" /> </div>`;
+const myElem = html`<div style="width: 1rem"><img src="cat.gif" /></div>`;
 document.body.append(myElem);
 ```
 
-You may template static values into your HTML, ***BE VERY CAREFUL!:** ιota supports templating in
+You may template static values into your HTML, **\*BE VERY CAREFUL!:** ιota supports templating in
 entire DOM nodes,
 but not attributes (see [`attrs`](#attrs-applying-attributes))!:
 
@@ -111,8 +111,10 @@ const expectedUI = html`<div>
 	${1 + 3}
 	${"woah!".toUpperCase()}
 	${document.createElement("button")}
-	${showButton ? html`<button />` : null}
-	</div>`;
+	${showButton
+		? html`<button />`
+		: null}
+</div>`;
 
 // this should not be expected to throw, however your output is likely to be garbled or unusable
 const brokenUI = html`<img alt="a cool img" src="${myImg}" />`;
@@ -120,18 +122,19 @@ const brokenUI = html`<img alt="a cool img" src="${myImg}" />`;
 
 You may template in the following types:
 
-- strings
-- numbers (auto-converted to strings)
-- DOM Nodes
-- arrays of these types
-- `null` & `undefined`
+-  strings
+-  numbers (auto-converted to strings)
+-  DOM Nodes
+-  arrays of these types
+-  `null` & `undefined`
 
 You should only use one top-level node in your template.
 The `html` function only returns the first node at the top level,
 so make sure to manually use an array of templates instead.
 
 ```js
-const justTheButton = html`<button /> <div>I get entirely dropped!</div>`;
+const justTheButton = html`<button />
+	<div>I get entirely dropped!</div>`;
 ```
 
 ### Reactivity
@@ -146,9 +149,9 @@ You can template in a function that returns any templatable value, like this:
 ```js
 const count = sig(0);
 const ui = html`<div>
-		The count is ${count} <br />
-		Doubled, that's ${() => count() * 2}
-	</div>`;
+	The count is ${count} <br />
+	Doubled, that's ${() => count() * 2}
+</div>`;
 ```
 
 ### `attrs`: Applying attributes
@@ -170,12 +173,7 @@ const myImage = attr(html`<img alt="a cool img" />`, "src", myImg);
 
 // use it in a template:
 const myUi = html`
-	<div id="image-wrap">
-	${attrs(
-		html`<img alt="a cool img" />`,
-		"src", myImg
-	)}
-	</div>
+	<div id="image-wrap">${attrs(html`<img alt="a cool img" />`, "src", myImg)}</div>
 `;
 ```
 
@@ -186,7 +184,7 @@ call: `attrs(myimg, "src", catImageSrc, "alt", catImageAlt)`;
 
 ```js
 const width = sig(500);
-const resizableDiv = attrs(html`<div/>`, "style", () => `width: ${width()}px`);
+const resizableDiv = attrs(html`<div />`, "style", () => `width: ${width()}px`);
 ```
 
 ## `ev`: Event handling
@@ -195,7 +193,9 @@ Introducing `attrs`' close cousin: `ev`, which adds event handlers to an element
 
 ```js
 const count = sig(0);
-const ui = ev(html`<button>I have been clicked ${count} times</button>`, "click", () => count(count() + 1));
+const ui = ev(html`<button>I have been clicked ${count} times</button>`, "click", () =>
+	count(count() + 1)
+);
 ```
 
 ## Components
@@ -207,24 +207,26 @@ const MyBtn = (content, onClick) =>
 	ev(html`<button class="my-btn">${content}</button>`, "click", onClick);
 
 const count = sig(0);
-const ui = html`
-	<div>
-		<h1>My Cool app</h1>
-		${MyBtn("say hi!", () => alert("hi there!"))}
-		<br />
-		${MyBtn(() => `a count of ${count()}`, () => count(count() + 1))}
-	</div>`;
+const ui = html` <div>
+	<h1>My Cool app</h1>
+	${MyBtn("say hi!", () => alert("hi there!"))}
+	<br />
+	${MyBtn(
+		() => `a count of ${count()}`,
+		() => count(count() + 1)
+	)}
+</div>`;
 ```
 
 ## Loops
 
 Use a nested template:
+
 ```js
 html`
 	<div>
-		${names.map(n => ev(
-				html`<button>Say hi to ${n}!</button>`,
-				"click", () => alert(`hi ${n}!`))
+		${names.map((n) =>
+			ev(html`<button>Say hi to ${n}!</button>`, "click", () => alert(`hi ${n}!`))
 		)}
 	</div>
 `;
@@ -232,10 +234,10 @@ html`
 
 ## Shoutouts
 
-- [ArrowJS](https://arrow-js.com) - the inspiration of this library.
-  If you want something like ιota but a lil bigger and with better DX, try Arrow! It's cool!
-- [Solid](https://solidjs.com) - inspired the use of signals.
-  If you want to build a full app or website, this is 100% my best recommendation. It just *rocks!*
-- You! - thanks for using my software. If you notice a bug, or want an extra feature that doesn't
-  fall under the non-goals, feel free to open an issue or PR :)
-  If you particularly like this or, any other of my software, feel free to buy me a coffee ;)
+-  [ArrowJS](https://arrow-js.com) - the inspiration of this library.
+   If you want something like ιota but a lil bigger and with better DX, try Arrow! It's cool!
+-  [Solid](https://solidjs.com) - inspired the use of signals.
+   If you want to build a full app or website, this is 100% my best recommendation. It just _rocks!_
+-  You! - thanks for using my software. If you notice a bug, or want an extra feature that doesn't
+   fall under the non-goals, feel free to open an issue or PR :)
+   If you particularly like this or, any other of my software, feel free to buy me a coffee ;)

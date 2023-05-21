@@ -44,9 +44,7 @@ export const html = <T extends Node = ChildNode>(
 
 				prev = nodes
 					.filter((n) => n != null && (typeof n === "string" ? n.trim() : true))
-					.map((v) =>
-						v instanceof Node ? v : document.createTextNode(v as any)
-					);
+					.map((v) => (v instanceof Node ? v : document.createTextNode(v as any)));
 
 				prev[0] ??= document.createTextNode("");
 
@@ -59,15 +57,11 @@ export const html = <T extends Node = ChildNode>(
 
 	//}
 
-	return ([...root.childNodes].find(
-		(n) => !(n instanceof Text) || n.textContent.trim()
-	) ?? root.firstChild) as any as T;
+	return ([...root.childNodes].find((n) => !(n instanceof Text) || n.textContent.trim()) ??
+		root.firstChild) as any as T;
 };
 
-export const ev = <T extends Node>(
-	node: T,
-	...evs: (string | ((ev: Event) => void))[]
-) => {
+export const ev = <T extends Node>(node: T, ...evs: (string | ((ev: Event) => void))[]) => {
 	for (let i = 0; i + 1 < evs.length; i += 2)
 		node.addEventListener(evs[i] as string, evs[i + 1] as any);
 
