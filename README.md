@@ -2,7 +2,7 @@
 
 ιota is a tiny UI library for JS. Its one and only focus is bundle size.
 
-How small is small?
+How small is small? 1.3kb minified, 724b minzipped (bundlejs, 1.0.0). Woah.
 
 It has a basic reactivity system (no batching etc.), and uses template strings to build UIs.
 
