@@ -4,10 +4,10 @@ type IndividualTemplateValue = Node | string | number | null | undefined;
 type StaticTemplateValue = IndividualTemplateValue | IndividualTemplateValue[];
 type ReactiveTemplateValue = StaticTemplateValue | (() => StaticTemplateValue);
 
-export function html<T extends Node = ChildNode>(
+export const html = <T extends Node = ChildNode>(
 	strings: TemplateStringsArray,
 	...values: ReactiveTemplateValue[]
-) {
+) => {
 	const root = document.createElement("_");
 
 	const idVals = values.map((v) => ["a" + Math.random(), v] as const);
@@ -62,19 +62,19 @@ export function html<T extends Node = ChildNode>(
 	return ([...root.childNodes].find(
 		(n) => !(n instanceof Text) || n.textContent.trim()
 	) ?? root.firstChild) as any as T;
-}
+};
 
-export function ev<T extends Node>(
+export const ev = <T extends Node>(
 	node: T,
 	...evs: (string | ((ev: Event) => void))[]
-) {
+) => {
 	for (let i = 0; i + 1 < evs.length; i += 2)
 		node.addEventListener(evs[i] as string, evs[i + 1] as any);
 
 	return node;
-}
+};
 
-export function attrs<T extends Element>(node: T, ...attrs: any[]) {
+export const attrs = <T extends Element>(node: T, ...attrs: any[]) => {
 	for (let i = 0; i + 1 < attrs.length; i += 2)
 		effect(() =>
 			node.setAttribute(
@@ -84,4 +84,4 @@ export function attrs<T extends Element>(node: T, ...attrs: any[]) {
 		);
 
 	return node;
-}
+};
