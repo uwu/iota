@@ -1,5 +1,5 @@
 {
-	"name": "iotajs",
+	"name": "@uwu/iota",
 	"version": "1.0.0",
 	"description": "A minimal size-optimized UI framework",
 	"main": "dist/index.js",
