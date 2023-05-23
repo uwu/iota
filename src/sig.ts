@@ -6,11 +6,11 @@ export const sig = <T>(val?: T): Sig<T> => {
 	const subs = new Set<() => void>();
 
 	return (...nv: [T]) => {
-		if (nv.at(-1)) {
-			val = nv.at(-1);
+		if (nv.length) {
+			val = nv[0];
 			subs.forEach((e) => e());
-		} else if (effectStack[0]) {
-			subs.add(effectStack[0]);
+		} else if (effectStack.at(-1)) {
+			subs.add(effectStack.at(-1) as () => void);
 		}
 		return val;
 	};
