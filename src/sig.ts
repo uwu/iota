@@ -6,8 +6,8 @@ export const sig = <T>(val?: T): Sig<T> => {
 	const subs = new Set<() => void>();
 
 	return (...nv: [T]) => {
-		if (nv.length) {
-			val = nv[0];
+		if (nv.at(-1)) {
+			val = nv.at(-1);
 			subs.forEach((e) => e());
 		} else if (effectStack[0]) {
 			subs.add(effectStack[0]);
@@ -21,11 +21,9 @@ export const effect = (cb: () => void) => {
 	const run = () => {
 		if (cancel) return;
 
-		// push and pop are much more performant than unshift and shift
-		// however it makes the effect truthiness check in sig() much smaller
-		effectStack.unshift(run);
+		effectStack.push(run);
 		cb();
-		effectStack.shift();
+		effectStack.pop();
 	};
 	run();
 
@@ -35,9 +33,9 @@ export const effect = (cb: () => void) => {
 };
 
 export const untrack = <T>(cb: () => T) => {
-	effectStack.unshift(0);
+	effectStack.push(0);
 	const v = cb();
-	effectStack.shift();
+	effectStack.pop();
 	return v;
 };
 
