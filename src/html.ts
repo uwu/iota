@@ -8,8 +8,6 @@ export const html = <T extends Node = ChildNode>(
 	strings: TemplateStringsArray,
 	...values: ReactiveTemplateValue[]
 ) => {
-	const root = document.createElement("_");
-
 	const idVals = values.map((v) => ["a" + Math.random(), v] as const);
 
 	let str = "";
@@ -20,9 +18,11 @@ export const html = <T extends Node = ChildNode>(
 		if (vi < idVals.length) str += `<${idVals[vi][0]}></${idVals[vi++][0]}>`;
 	}
 
+	// not great, parsing as XML means you get no element specific prototypes
+	// but it does mean you can use <tr> etc properly
 	// parse tree
-	root.innerHTML = str;
-	const tree = root.firstElementChild;
+	const root = new DOMParser().parseFromString(str, "text/xml");
+	const tree = root.documentElement.firstElementChild;
 
 	// i think multiple top-level elems is unnecessary for now
 	///const trees = [...root.children];
