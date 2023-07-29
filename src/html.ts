@@ -29,7 +29,8 @@ export const html = <T extends Node = ChildNode>(
 	// not great, parsing as XML means you get no element specific prototypes
 	// but it does mean you can use <tr> etc properly
 	// parse tree
-	const tree = new DOMParser().parseFromString(str, "text/xml").documentElement.firstElementChild;
+	const parsedXML = new DOMParser().parseFromString(str, "text/xml");
+	const tree = parsedXML.documentElement.firstElementChild;
 	// fix ns
 	const root = document.createElement("_");
 	root.append(tree);
@@ -68,8 +69,8 @@ export const html = <T extends Node = ChildNode>(
 
 	//}
 
-	return ([...new DOMParser().parseFromString(str, "text/xml").childNodes].find((n) => !(n instanceof Text) || n.textContent.trim()) ??
-		new DOMParser().parseFromString(str, "text/xml").firstChild) as any as T;
+	return ([...parsedXML.childNodes].find((n) => !(n instanceof Text) || n.textContent.trim()) ??
+		parsedXML.firstChild) as any as T;
 };
 
 export const ev = <T extends Node>(node: T, ...evs: (string | ((ev: Event) => void))[]) => {
