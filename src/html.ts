@@ -1,8 +1,16 @@
-import { effect } from "./sig";
+import {effect} from "./sig";
 
 type IndividualTemplateValue = Node | string | number | null | undefined;
 type StaticTemplateValue = IndividualTemplateValue | IndividualTemplateValue[];
 type ReactiveTemplateValue = StaticTemplateValue | (() => StaticTemplateValue);
+
+function fixNS(node: Element) {
+	const htmlNode = document.createElement(node.tagName);
+	for (const attr of node.attributes) htmlNode.setAttribute(attr.name, attr.value);
+	htmlNode.replaceChildren(...node.childNodes);
+	node.replaceWith(htmlNode);
+	[...htmlNode.children].forEach(fixNS);
+}
 
 export const html = <T extends Node = ChildNode>(
 	strings: TemplateStringsArray,
@@ -21,8 +29,11 @@ export const html = <T extends Node = ChildNode>(
 	// not great, parsing as XML means you get no element specific prototypes
 	// but it does mean you can use <tr> etc properly
 	// parse tree
-	const root = new DOMParser().parseFromString(str, "text/xml");
-	const tree = root.documentElement.firstElementChild;
+	const tree = new DOMParser().parseFromString(str, "text/xml").documentElement.firstElementChild;
+	// fix ns
+	const root = document.createElement("_");
+	root.append(tree);
+	fixNS(tree);
 
 	// i think multiple top-level elems is unnecessary for now
 	///const trees = [...root.children];
@@ -57,8 +68,8 @@ export const html = <T extends Node = ChildNode>(
 
 	//}
 
-	return ([...root.childNodes].find((n) => !(n instanceof Text) || n.textContent.trim()) ??
-		root.firstChild) as any as T;
+	return ([...new DOMParser().parseFromString(str, "text/xml").childNodes].find((n) => !(n instanceof Text) || n.textContent.trim()) ??
+		new DOMParser().parseFromString(str, "text/xml").firstChild) as any as T;
 };
 
 export const ev = <T extends Node>(node: T, ...evs: (string | ((ev: Event) => void))[]) => {
