@@ -26,11 +26,9 @@ export const html = <T extends Node = ChildNode>(
 		if (vi < idVals.length) str += `<${idVals[vi][0]}></${idVals[vi++][0]}>`;
 	}
 
-	// not great, parsing as XML means you get no element specific prototypes
-	// but it does mean you can use <tr> etc properly
 	// parse tree
 	const parsedXML = new DOMParser().parseFromString(str, "text/xml");
-	const tree = parsedXML.documentElement.firstElementChild;
+	const tree = parsedXML.documentElement;
 	// fix ns
 	const root = document.createElement("_");
 	root.append(tree);
