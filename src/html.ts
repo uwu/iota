@@ -27,12 +27,11 @@ export const html = <T extends Node = ChildNode>(
 	}
 
 	// parse tree
-	const parsedXML = new DOMParser().parseFromString(str, "text/xml");
-	const tree = parsedXML.documentElement;
 	// fix ns
 	const root = document.createElement("_");
-	root.append(tree);
-	fixNS(tree);
+	root.append(new DOMParser().parseFromString(str, "text/xml").documentElement);
+	fixNS(root.firstElementChild);
+	const tree = root.firstElementChild;
 
 	// i think multiple top-level elems is unnecessary for now
 	///const trees = [...root.children];
@@ -67,8 +66,8 @@ export const html = <T extends Node = ChildNode>(
 
 	//}
 
-	return ([...parsedXML.childNodes].find((n) => !(n instanceof Text) || n.textContent.trim()) ??
-		parsedXML.firstChild) as any as T;
+	return ([...root.childNodes].find((n) => !(n instanceof Text) || n.textContent.trim()) ??
+		root.firstChild) as any as T;
 };
 
 export const ev = <T extends Node>(node: T, ...evs: (string | ((ev: Event) => void))[]) => {
