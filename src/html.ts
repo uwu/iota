@@ -1,37 +1,33 @@
 import {effect} from "./sig";
+import {parser} from "./parser";
 
 type IndividualTemplateValue = Node | string | number | null | undefined;
 type StaticTemplateValue = IndividualTemplateValue | IndividualTemplateValue[];
 type ReactiveTemplateValue = StaticTemplateValue | (() => StaticTemplateValue);
 
-function fixNS(node: Element) {
-	const htmlNode = document.createElement(node.tagName);
-	for (const attr of node.attributes) htmlNode.setAttribute(attr.name, attr.value);
-	htmlNode.replaceChildren(...node.childNodes);
-	node.replaceWith(htmlNode);
-	[...htmlNode.children].forEach(fixNS);
-}
+const IS_NODE = <T extends Node = Node>(v: any): v is T => !!v.parentNode;
+const IS_ARRAY = <T>(v: T | T[]): v is T[] => !!v[0];
+const IS_FN = (v: any): v is Function => !!v.bind;
+const IS_STR = (v: any): v is string => !!v.big;
 
 export const html = <T extends Node = ChildNode>(
 	strings: TemplateStringsArray,
 	...values: ReactiveTemplateValue[]
 ) => {
-	const idVals = values.map((v) => ["a" + Math.random(), v] as const);
+	let id = 0;
+	const idVals = values.map((v) => ["a" + id++, v] as const);
 
 	let str = "";
 	let si = 0,
 		vi = 0;
 	while (si < strings.length || vi < idVals.length) {
 		if (si < strings.length) str += strings[si++];
-		if (vi < idVals.length) str += `<${idVals[vi][0]}></${idVals[vi++][0]}>`;
+		if (vi < idVals.length) str += `<${idVals[vi++][0]}/>`;
 	}
 
 	// parse tree
-	// fix ns
-	const root = document.createElement("_");
-	root.append(new DOMParser().parseFromString(str, "text/xml").documentElement);
-	fixNS(root.firstElementChild);
-	const tree = root.firstElementChild;
+	const tree = parser(str).find(IS_NODE<Element>);
+	// if your tree contains no elements literally explode
 
 	// i think multiple top-level elems is unnecessary for now
 	///const trees = [...root.children];
@@ -43,21 +39,21 @@ export const html = <T extends Node = ChildNode>(
 			let prev: Node[] = [el];
 			const react = () => {
 				let last: Node;
-				while (prev.length) {
+				while (prev[0]) {
 					last?.parentNode?.removeChild(last);
 					last = prev.shift();
 				}
 
-				const unwrapped = typeof val === "function" ? val() : val;
-				const nodes = Array.isArray(unwrapped) ? unwrapped : [unwrapped];
+				const unwrapped = IS_FN(val) ? val() : val;
+				const nodes = IS_ARRAY(unwrapped) ? unwrapped : [unwrapped];
 
 				prev = nodes
-					.filter((n) => n != null && (typeof n === "string" ? n.trim() : true))
-					.map((v) => (v instanceof Node ? v : document.createTextNode(v as any)));
+					.filter((n) => n != null && (IS_STR(n) ? n.trim() : true))
+					.map((v) => (IS_NODE(v) ? v : new Text(v as any)));
 
-				prev[0] ??= document.createTextNode("");
+				prev[0] ??= new Text();
 
-				prev.forEach((n) => last.parentNode?.insertBefore(n, last));
+				prev.map((n) => last.parentNode?.insertBefore(n, last));
 				last.parentNode?.removeChild(last);
 			};
 			effect(react);
@@ -66,8 +62,9 @@ export const html = <T extends Node = ChildNode>(
 
 	//}
 
-	return ([...root.childNodes].find((n) => !(n instanceof Text) || n.textContent.trim()) ??
-		root.firstChild) as any as T;
+	/*return ([...root.childNodes].find((n) => !(n instanceof Text) || n.textContent.trim()) ??
+		root.firstChild) as any as T;*/
+	return tree as any as T;
 };
 
 export const ev = <T extends Node>(node: T, ...evs: (string | ((ev: Event) => void))[]) => {
@@ -82,7 +79,7 @@ export const attrs = <T extends Element>(node: T, ...attrs: any[]) => {
 		effect(() =>
 			node.setAttribute(
 				attrs[i],
-				typeof attrs[i + 1] === "function" ? attrs[i + 1]() : attrs[i + 1]
+				IS_FN(attrs[i + 1]) ? attrs[i + 1]() : attrs[i + 1]
 			)
 		);
 
